@@ -1,0 +1,153 @@
+<!-- Header -->
+{% include "header.html" %}
+
+<body>
+  <!-- Sidebar -->
+  {% include "sidebar.html" %}
+
+
+  <main id="main" class="main">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid p-0">
+        <h1>Dashboard</h1>
+        <div>
+          <ul class="nav justify-content-center">
+            <li>
+              <i class="fa-solid fa-circle-user fa-2xl"></i>
+              <select id="myForm2" name="mySelect" onchange="location = this.value;">
+                <option>{{user_info[0][1]}} {{user_info[0][2]}}</option>
+                  <option value="account">My account</option>
+                  <option value="logout">Log out</option>
+              </select>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="">
+      <!-- <h1>Account</h1> -->
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a> / </li>
+          <li class="breadcrumb-itemf active">Account</li>
+        </ol>
+      </nav>
+    </div>
+
+
+
+    <div class="card p-5">
+      <div class="card mt-3">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-4">
+              <img src="static/img/user2.png" class="rounded-circle" alt="Cinque Terre" style="width:40%">
+            </div>
+            <div class="col-8">
+              <ul class="list-unstyled text-start p-3">
+                <li class="h2">{{user_info[0][1]}} {{user_info[0][2]}}</li>
+                <li>{{user_info[0][6]}}</li>
+                <li>Auckland CBD, Auckland, New Zealand</li>
+              </ul>
+            </div>
+            <!-- <div class="col-2 m-auto">
+              <i class="fa-solid fa-pen-to-square fa-2xl"></i>
+            </div> -->
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h3>Personal Information</h3>
+          <div class="row">
+            <div class="col-5">
+              <ul class="list-unstyled text-start p-3">
+                <span class="m-1">
+                  <li>First name</li>
+                  <li class="mx-2">{{user_info[0][1]}}</li>
+                </span>
+                <span class="m-1">
+                  <li>Email</li>
+                  <li class="mx-2">{{user_info[0][4]}}</li>
+                </span>
+              </ul>
+            </div>
+            <div class="col-5">
+              <ul class="list-unstyled text-start p-3">
+                <span class="m-1">
+                  <li>Last name</li>
+                  <li class="mx-2">{{user_info[0][2]}}</li>
+                </span>
+                <span class="m-1">
+                  <li>Phone</li>
+                  <li class="mx-2">{{user_info[0][3]}}</li>
+                </span>
+              </ul>
+            </div>
+            <div class="col-2 m-auto">
+              <i class="fa-solid fa-pen-to-square fa-2xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mt-3">
+        <div class="card-body">
+          <h3>Address</h3>
+          <div class="row">
+            <div class="col-5">
+              <ul class="list-unstyled text-start p-3">
+                <span class="m-1">
+                  <li>House Number</li>
+                  <li class="mx-2">---</li>
+                </span>
+                <span class="m-1">
+                  <li>City/State</li>
+                  <li class="mx-2">---</li>
+                </span>
+              </ul>
+            </div>
+            <div class="col-5">
+              <ul class="list-unstyled text-start p-3">
+                <span class="m-1">
+                  <li>Street</li>
+                  <li class="mx-2">---</li>
+                </span>
+                <span class="m-1">
+                  <li>Postal code</li>
+                  <li class="mx-2">---</li>
+                </span>
+              </ul>
+            </div>
+            <div class="col-2 m-auto">
+              <i class="fa-solid fa-pen-to-square fa-2xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  
+    </div>
+
+  </main>
+
+
+
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/chart.js/chart.umd.js"></script>
+  <script src="assets/vendor/echarts/echarts.min.js"></script>
+  <script src="assets/vendor/quill/quill.min.js"></script>
+  <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
+  <script src="assets/vendor/tinymce/tinymce.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="assets/js/main.js"></script>
+
+</body>
+
+</html>

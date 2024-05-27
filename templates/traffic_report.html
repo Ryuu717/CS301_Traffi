@@ -1,0 +1,145 @@
+<!-- Header -->
+{% include "header.html" %}
+
+<body>
+  <!-- Sidebar -->
+  {% include "sidebar.html" %}
+
+
+  <main id="main" class="main">
+
+    <div class="">
+      <h1>Traffic Report</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a> / </li>
+          <li class="breadcrumb-itemf active">Traffic Report</li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div class="row">
+          <h3>User Report</h3>
+          <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item user_report" src="../static/img/traffic1.mp4" allowfullscreen></iframe>
+          </div>
+          <h1 class="card-title">User Reports <span>| {{num_traffic_report}} results</span></h1>
+          <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+          <script type="text/javascript">
+            google.charts.load('current', {'packages':['table']});
+            google.charts.setOnLoadCallback(drawTableUserReports);
+
+            function drawTableUserReports() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('number', 'id');
+                data.addColumn('string', 'Date');
+                data.addColumn('string', 'Location');
+                data.addColumn('string', 'Licence Plate');
+                data.addColumn('string', 'Brand');
+                data.addColumn('string', 'Car Type');
+                data.addColumn('string', 'Color');
+                data.addColumn('string', 'Risk');
+                data.addColumn('string', 'Report');
+                data.addColumn('string', 'User');
+                data.addColumn('string', 'Phone');
+                data.addColumn('string', 'Email');
+                data.addColumn('string', 'Detail');
+                
+                data.addRows({{ traffic_report | safe }});
+
+                var table = new google.visualization.Table(document.getElementById('table_user_reports'));
+    
+                var options = {
+                    showRowNumber: true, // Shows row numbers
+                    width: '35vw',
+                    height: '35vh'
+                };
+    
+                table.draw(data, options);
+            }
+          </script>
+          <div id="table_user_reports"></div>
+        </div>
+        <div class="text-right p-3">
+          <button type="button" class="btn btn-primary">Search</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="row">
+          <h3>Matched Result</h3>
+          <div class="embed-responsive embed-responsive-16by9">
+            <iframe class="embed-responsive-item user_report" src="../static/img/traffic1.mp4" allowfullscreen></iframe>
+          </div>
+          <h1 class="card-title">Matched Records <span>| {{num_matched_report}} results</span></h1>
+          <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+          <script type="text/javascript">
+            google.charts.load('current', {'packages':['table']});
+            google.charts.setOnLoadCallback(drawTableMatchedReports);
+
+            function drawTableMatchedReports() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('number', 'CarID');
+                data.addColumn('string', 'Date');
+                data.addColumn('number', 'Year');
+                data.addColumn('number', 'Month');
+                data.addColumn('number', 'Day');
+                data.addColumn('string', 'Time');
+                data.addColumn('string', 'Data Sorce');
+                data.addColumn('string', 'Location');
+                data.addColumn('string', 'Licence Plate');
+                data.addColumn('string', 'Brand');
+                data.addColumn('string', 'Car Type');
+                data.addColumn('string', 'Color');
+                data.addColumn('number', 'Speed Limit');
+                data.addColumn('number', 'Speed');
+                data.addColumn('number', 'Exceeding Rate');
+                data.addColumn('string', 'Direction');
+                data.addColumn('string', 'Video');
+                data.addColumn('string', 'Image');
+                data.addColumn('string', 'Status');
+                data.addColumn('string', 'Detail');
+                
+                data.addRows({{ matched_report | safe }});
+
+                var table = new google.visualization.Table(document.getElementById('table_matched_reports'));
+    
+                var options = {
+                    showRowNumber: true, // Shows row numbers
+                    width: '35vw',
+                    height: '35vh'
+                };
+    
+                table.draw(data, options);
+            }
+          </script>
+          <div id="table_matched_reports"></div>
+        </div>
+        <div class="text-right p-3">
+          <button type="button" class="btn btn-primary float-right">Report This Car</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+
+
+
+  <!-- Vendor JS Files -->
+  <script src="../static/vendor/apexcharts/apexcharts.min.js"></script>
+  <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../static/vendor/chart.js/chart.umd.js"></script>
+  <script src="../static/vendor/echarts/echarts.min.js"></script>
+  <script src="../static/vendor/quill/quill.min.js"></script>
+  <script src="../static/vendor/simple-datatables/simple-datatables.js"></script>
+  <script src="../static/vendor/tinymce/tinymce.min.js"></script>
+  <script src="../static/vendor/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS File -->
+  <script src="../static/js/main.js"></script>
+
+</body>
+
+</html>

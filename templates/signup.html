@@ -1,0 +1,80 @@
+<!-- Header -->
+{% include "header.html" %}
+
+  <body id="landing">
+    <div class="m-5">
+      <!-- Logo -->
+      <div class="d-flex align-items-center justify-content-between mb-5">
+        <a href="/" class="logo d-flex align-items-center text-decoration-none">
+          <img src="../static/img/logo-white.png" alt="">
+          <span class="d-none d-lg-block text-white">Visions</span>
+        </a>
+      </div>
+      <div class="d-flex justify-content-center pt-5 mt-5">
+        <!-- <form class="card p-4 form" action="/dashboard", method="post"> -->
+        <form class="card p-4 form" method="POST" enctype="multipart/form-data" action="/add_account">
+          {{ form.hidden_tag() }} 
+
+          <h2 class="fw-bold mb-5">Create account</h2>
+
+          <div class="form-group">
+            <div class="row">
+              <div class="col">
+                {{ form.first_name.label(style='padding: 5px 0px;') }} <br> 
+                {{ form.first_name(style='width: 250px;') }} <br> 
+                <!-- Error Message -->
+                {% for message in form.first_name.errors %} 
+                  <div class="text-danger">{{message}}</div> 
+                {% endfor %} 
+              </div>
+              <div class="col">
+                {{ form.last_name.label(style='padding: 5px 0px;') }} <br> 
+                {{ form.last_name(style='width: 250px;') }} <br> 
+                <!-- Error Message -->
+                {% for message in form.last_name.errors %} 
+                  <div class="text-danger">{{message}}</div> 
+                {% endfor %} 
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            {{ form.email.label(style='padding: 5px 0px;') }} <br> 
+            {{ form.email(style='width: 560px;') }} <br> 
+            <!-- Error Message -->
+            {% for message in form.email.errors %} 
+              <div class="text-danger">{{message}}</div> 
+            {% endfor %} 
+          </div>
+          <div class="form-group">
+            {{ form.password.label(style='padding: 5px 0px;') }} <br> 
+            {{ form.password(style='width: 560px;') }} <br> 
+            <!-- Error Message -->
+            {% for message in form.password.errors %} 
+              <div class="text-danger">{{message}}</div> 
+            {% endfor %} 
+          </div>        
+          <div class="form-group">
+            {{ form.re_enter_password.label(style='padding: 5px 0px;') }} <br> 
+            {{ form.re_enter_password(style='width: 560px;') }} <br> 
+            <!-- Error Message -->
+            {% for message in form.re_enter_password.errors %} 
+              <div class="text-danger">{{message}}</div> 
+            {% endfor %} 
+          </div>
+          <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary my-3 width-max">Continue</button>
+          </div>
+          <!-- <div class="py-3">
+            <a href="/dashboard" class="btn btn-primary my-3 width-max" role="button">Continue</a>
+          </div> -->
+
+          <h6>Already have an account?<span class="px-2"><a href="/login">Login</a></span></h6>
+
+        </form>
+      </div>
+      
+    </div>
+
+  </body>
+</html>

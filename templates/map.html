@@ -1,0 +1,62 @@
+<!-- Header -->
+{% include "header.html" %}
+
+  <body>
+    <!-- Sidebar -->
+    {% include "sidebar.html" %}
+
+    <main id="main" class="main">
+
+      <div class="">
+        <h1>Map</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a> / </li>
+            <li class="breadcrumb-itemf active">Map</li>
+          </ol>
+        </nav>
+      </div>
+    </main>
+    
+    <div id="map"></div>
+
+    <script>
+      function initMap() {
+        const auckland_lat = -36.85086441040039;
+        const auckland_lng = 174.7642364501953;
+
+        const mapOptions = {
+          zoom: 14,
+          center: { lat: auckland_lat, lng: auckland_lng }, 
+        };
+      
+        map = new google.maps.Map(document.getElementById("map"), mapOptions);
+        
+        
+        const marker = new google.maps.Marker({
+          position: { lat: auckland_lat+0.001, lng: auckland_lng+0.001 },
+          map: map,
+        });
+        const marker2 = new google.maps.Marker({
+          position: { lat: auckland_lat-0.001, lng: auckland_lng-0.001 },
+          map: map,
+        });
+      
+        const infowindow = new google.maps.InfoWindow({
+          content: "<p>Marker Location:" + marker.getPosition() + "</p>",
+        });
+      
+        google.maps.event.addListener(marker, "click", () => {
+          infowindow.open(map, marker);
+        });
+        
+      }
+    </script>
+
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8HHqTm9nMj4uO58sHD37iT7W_j0K5LY4&callback=initMap&v=weekly"></script>
+
+
+  
+  </body>
+</html>

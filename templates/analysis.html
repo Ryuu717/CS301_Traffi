@@ -1,0 +1,45 @@
+<!-- Header -->
+{% include "header.html" %}
+
+<body>
+  <!-- Sidebar -->
+  {% include "sidebar.html" %}
+
+
+  <main id="main" class="main">
+    <div class="">
+      <h1>Analysis</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a> / </li>
+          <li class="breadcrumb-itemf active">Analysis</li>
+        </ol>
+      </nav>
+    </div>
+    <div>
+      <h1></h1>
+    </div>
+
+    <section class="col-sm " >
+      <img src="{{ url_for('video') }}"   alt="Upload video">
+    </section>
+    
+    <section>
+        <div class="new" >
+          <form method = 'POST' enctype="multipart/form-data" style="align-content: center; text-align: center;display: flex;">
+            {{form.hidden_tag()}}
+            {{form.file(class_="custom-file-input")}}
+
+            <div>
+              <button type="submit" name="favorite" value="x" class="btnCustom">
+                  Submit
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+      </section>
+    </main>
+</body>
+</html>

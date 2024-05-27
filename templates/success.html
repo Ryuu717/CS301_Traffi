@@ -1,0 +1,47 @@
+<!-- Header -->
+{% include "header.html" %}
+
+<!-- Body -->
+<body class="p-0 m-0 border-0 bd-example bg-black">
+    
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">{{title}}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            {{detail}}
+        </div>
+        <div class="modal-footer">
+            <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+            <button type="button" class="btn btn-primary"><a class="text-decoration-none text-white" href="/dashboard">Main Dashboard</a></button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal -->
+    <!-- <div class="modal hide" tabindex="-1" role="dialog" id="success_modal" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content bg-light">
+            <div class="modal-header">
+                <h5 class="modal-title">{{title}}</h5>
+                <button type="button" class="close btn btn-secondary" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><a class="text-decoration-none text-white" href="/">&times;</a></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="">{{detail}}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal"><a class="text-decoration-none text-white" href="/">Close</a></button>
+            </div>
+            </div>
+        </div>
+    </div> -->
+
+</body>
+</html>
