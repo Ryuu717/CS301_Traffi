@@ -1,33 +1,21 @@
 from flask import Flask, render_template, Response,jsonify,request,session, flash, redirect, url_for
-
-#FlaskForm--> it is required to receive input from the user
-# Whether uploading a video file  to our object detection model
-
 from flask_wtf import FlaskForm
-from forms import UserReportForm, UserRegistrationForm, UserLoginForm
+from forms import UserReportForm, UserRegistrationForm, UserLoginForm, SearchForm, OperatorReportForm
 from flask_login import UserMixin, LoginManager, login_user, logout_user, current_user
-# from wtforms import FileField, SubmitField,StringField,DecimalRangeField,IntegerRangeField
 from wtforms import FileField, SubmitField,StringField
 from werkzeug.utils import secure_filename
 from wtforms.validators import InputRequired,NumberRange
+from auto_report import send_email2
 import os
-
 from datetime import date, timedelta
-import pandas as pd
+from db_handler import db_select, db_select_where, db_select_count_data_by_day, db_select_count_speedings_by_day, db_select_count_camera_by_status, db_insert_user_report, db_insert_users, check_password, db_select_where_above_by_month, db_update_cars, db_select_order, db_insert_user_report
 
-
+from ultralytics.solutions.speed_estimation import SpeedEstimator
 # Required to run the YOLOv8 model
 import cv2
-
-from db_handler import db_select, db_select_where, db_select_where_above, db_select_count_data_by_day, db_select_count_speedings_by_day, db_select_count_camera_by_status, db_insert_user_report, db_insert_users, check_password, db_select_where_above_by_month, db_update_cars
-from ultralytics.solutions.speed_estimation import SpeedEstimator
-
-
-# YOLO_Video is the python file which contains the code for our object detection model
-#Video Detection is the Function which performs Object Detection on Input Video
+# Video Detection is the Function which performs Object Detection on Input Video
 from YOLO_Video import video_detection
-# from predict import predict
-from predict2 import predict2
+from predict import predict
 
 
 app = Flask(__name__)
@@ -114,7 +102,7 @@ def generate_frames_web(path_x):
 
 
 def generate_frames2(path_x = ''):
-   yolo_output = predict2(path_x)
+   yolo_output = predict(path_x)
    # print(f"yolo_output::::::::::::::::::{yolo_output}")
    for detection_ in yolo_output:
       # print(f"detection_::::::::::::{detection_}")
@@ -155,19 +143,6 @@ def load_user(UserID):
 
 
 ################################################################################################
-# Test
-################################################################################################
-# @app.route('/test')
-# def test():
-#         return render_template('chart.html', data={"Name":"Salary", "Mike":10000, "Jim":800, "Alice":12500,"Bob":7000})
-
-
-# HTML
-# {% for k, v in data.items() %}
-
-
-
-################################################################################################
 # Traffic API
 ################################################################################################
 # Tomtom
@@ -187,47 +162,171 @@ def landing():
 ################################################################################################
 # Sign up
 ################################################################################################
-@app.route("/signup")
+# @app.route("/signup")
+# def signup():
+   
+#    form = UserRegistrationForm()
+    
+#    if request.method == 'POST': 
+#       if form.validate() == False: 
+#          flash('All fields are required.') 
+#          return render_template('signup.html', form = form) 
+#       else: 
+#          return render_template('dashboard.html') 
+   
+#    if request.method == 'GET': 
+#       return render_template('signup.html', form = form) 
+
+
+@app.route("/signup", methods=['GET', 'POST'])
 def signup():
    
    form = UserRegistrationForm()
     
    if request.method == 'POST': 
-      if form.validate() == False: 
+      if form.validate_on_submit(): 
+         
+         # Check existing email
+         entered_email = form.email.data
+         try:
+            existing_email = db_select_where("Email", "Users", "Email", entered_email)
+            if entered_email in existing_email[0]:
+               flash("Your email is already in use. Please sign in instead")
+               return render_template('signup.html', form = form)
+            
+         except:
+            db_insert_users(form)
+            new_user = db_select_where("*", "users", "Email", form.email.data)
+            new_user = load_user(new_user[0][0])
+            login_user(new_user)
+
+            return redirect(url_for('success',request = "signup"))
+
+      else:
          flash('All fields are required.') 
          return render_template('signup.html', form = form) 
-      else: 
-         return render_template('index.html') 
    
    if request.method == 'GET': 
       return render_template('signup.html', form = form) 
 
+
+# @app.route('/add_account', methods=['POST'])
+# def add_account(): 
+#    form = UserRegistrationForm()
+   
+#    if form.validate_on_submit(): 
+      
+#       # Check existing email
+#       entered_email = form.email.data
+#       try:
+#          existing_email = db_select_where("Email", "Users", "Email", entered_email)
+#          if entered_email in existing_email[0]:
+#             flash("Your email is already in use. Please sign in instead")
+#             return render_template('signup.html', form = form)
+         
+#       except:
+#          db_insert_users(form)
+#          new_user = db_select_where("*", "users", "Email", form.email.data)
+#          new_user = load_user(new_user[0][0])
+#          login_user(new_user)
+
+#          return redirect(url_for('success',request = "signup"))
+#          # return render_template('dashboard.html')
+#    else:
+#       return render_template('signup.html', form = form) 
+   
+
+
 ################################################################################################
-# Log in
+# Signin
 ################################################################################################
-@app.route("/login", methods=['GET', 'POST'])
-def login():
+# @app.route("/signin", methods=['GET', 'POST'])
+# def signin():
+#     form = UserLoginForm()
+    
+#     if request.method == 'POST': 
+#         if form.validate() == False: 
+#             flash('All fields are required.') 
+#             return render_template('signin.html', form = form) 
+#         else: 
+#             # 0. Current user
+#             current_user_id = str(current_user.get_id())
+#             user_info = db_select_where("*","Users", "UserID", current_user_id) 
+#             return render_template('dashboard.html',
+#                                    user_info = user_info) 
+    
+#     if request.method == 'GET': 
+#         return render_template('signin.html', form = form) 
+
+@app.route("/signin", methods=['GET', 'POST'])
+def signin():
     form = UserLoginForm()
     
     if request.method == 'POST': 
-        if form.validate() == False: 
-            flash('All fields are required.') 
-            return render_template('login.html', form = form) 
-        else: 
-            # 0. Current user
+      entered_email = request.form['email']
+      entered_password = request.form['password']
+
+      try:
+         registered_user = db_select_where("*","Users", "Email", entered_email)
+         registered_password = registered_user[0][5]
+      except:
+         registered_user = "None"
+         
+      if registered_user != "None":
+         if check_password(registered_password,entered_password):
+            registered_user = load_user(registered_user[0][0])
+            login_user(registered_user)
+            
             current_user_id = str(current_user.get_id())
             user_info = db_select_where("*","Users", "UserID", current_user_id) 
-            return render_template('index.html',
-                                   user_info = user_info) 
+            return redirect(url_for('success', request="signin"))
+            # return render_template('dashboard.html', user_info = user_info)
+         
+         else:
+            flash('Your password is wrong')
+            return redirect(url_for('signin')) 
+      else:
+         flash('Your email is not registered')
+         return redirect(url_for('signin')) 
     
     if request.method == 'GET': 
-        return render_template('login.html', form = form) 
+        return render_template('signin.html', form = form) 
+
+# @app.route('/signin_account', methods=['POST'])
+# def signin_account():
+#    if request.method == 'POST':   
+#       entered_email = request.form['email']
+#       entered_password = request.form['password']
+
+#       try:
+#          registered_user = db_select_where("*","Users", "Email", entered_email)
+#          registered_password = registered_user[0][5]
+#       except:
+#          registered_user = "None"
+         
+#       if registered_user != "None":
+#          if check_password(registered_password,entered_password):
+#             registered_user = load_user(registered_user[0][0])
+#             login_user(registered_user)
+            
+#             current_user_id = str(current_user.get_id())
+#             user_info = db_select_where("*","Users", "UserID", current_user_id) 
+#             return redirect(url_for('success', request="signin"))
+#             # return render_template('dashboard.html', user_info = user_info)
+         
+#          else:
+#             flash('Your password is wrong')
+#             return redirect(url_for('signin')) 
+#       else:
+#          flash('Your email is not registered')
+#          return redirect(url_for('signin')) 
+
 
 ################################################################################################
-# Log out
+# Sign out
 ################################################################################################
-@app.route('/logout')
-def logout():
+@app.route('/signout')
+def signout():
     logout_user()
     return redirect(url_for('landing'))
 
@@ -237,7 +336,7 @@ def logout():
 # Dashbords
 ################################################################################################
 @app.route("/dashboard", methods=['GET', 'POST'])
-def main():
+def dashboard():
    # session.clear()
    
    # 0. Current user
@@ -246,7 +345,7 @@ def main():
    user_info = db_select_where("*","Users", "UserID", current_user_id)  
    
    
-   selected_month = 1
+   selected_month = 6
    if request.method == 'POST':
       selected_month = request.form['mySelect']
    
@@ -318,9 +417,8 @@ def main():
       list.append(car_direction_list[i][4])
       data5.append(list)
 
-   print(user_info)
    
-   return render_template("index.html", 
+   return render_template("dashboard.html", 
                           all_records = all_records,
                           num_cars = num_cars,
                           num_exceedings = num_exceedings,
@@ -349,6 +447,8 @@ def livevideo():
 ################################################################################################
 @app.route("/allrecords")
 def allrecords():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    #All records
    all_records = db_select("*","AllRecords")  
@@ -364,7 +464,8 @@ def allrecords():
    
       
    return render_template("all_records.html", 
-                          all_records = all_records_temp
+                          all_records = all_records_temp,
+                          current_user_id = current_user_id
                           )
 
 ################################################################################################
@@ -372,6 +473,9 @@ def allrecords():
 ################################################################################################
 @app.route("/cars")
 def cars():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
+   
    # Update Cars
    db_update_cars()
    
@@ -388,7 +492,8 @@ def cars():
       
       
    return render_template("cars.html", 
-                          car_records = car_records_temp
+                          car_records = car_records_temp,
+                          current_user_id = current_user_id
                           )
 
 
@@ -397,8 +502,11 @@ def cars():
 ################################################################################################
 @app.route("/map")
 def map():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    return render_template("map.html", 
+                          current_user_id = current_user_id
                           )
    
 
@@ -407,6 +515,8 @@ def map():
 ################################################################################################
 @app.route('/analysis', methods=['GET','POST'])
 def analysis():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    # Upload File Form: Create an instance for the Upload File Form
    form = UploadFileForm()
@@ -421,7 +531,10 @@ def analysis():
                                           secure_filename(file.filename))
       
 
-   return render_template('analysis.html', form=form)
+   return render_template('analysis.html', 
+                          form=form,
+                          current_user_id = current_user_id
+                          )
 
 
 
@@ -437,11 +550,14 @@ def video():
 ################################################################################################
 # Traffic Report
 ################################################################################################
-@app.route("/trafficreport")
+@app.route("/trafficreport", methods=['GET','POST'])
 def trafficreport():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    #Traffic Report
-   traffic_report = db_select("*","UserReports")  
+   # traffic_report = db_select("*","UserReports")  
+   traffic_report = db_select_order("*","UserReports", "Date", "DESC")  
    traffic_report_cols = len(traffic_report[0])
    num_traffic_report = len(traffic_report)
    
@@ -452,43 +568,78 @@ def trafficreport():
          list.append(traffic_report[i][j])
          
       traffic_report_temp.append(list)
+   
+   
+   # Get form data
+   form1 = SearchForm()
+   form2 = OperatorReportForm()
+   
+   
+   if request.method == 'GET':
+      plateNumber = ''
+      reported_image_name = "user_report.png"
+      reported_video_name = "user_report.png"
+      matched_image_name = "searched_result.png"
+      matched_video_name = "searched_result.png"
+      
+   if request.method == 'POST':
+      try:
+         plateNumber = request.form['plateNumber']
+         reported_image_name = request.form['reportedImageName']
+         reported_video_name = request.form['reportedVideoName']
+         matched_image_name = db_select_where("Image","AllRecords", "LicencePlate", plateNumber)[0][0]
+         matched_video_name = db_select_where("Video","AllRecords", "LicencePlate", plateNumber)[0][0]
+         
+         
+         # video_name = db_select_where("Image","AllRecords", "LicencePlate", plateNumber)[0][0]
+         # print(f"video_name:::::::::::::::::::::::::::::{video_name}")
+      except:
+         # plateNumber = ""
+         plateNumber2 = request.form['plateNumber2']
+         return redirect(url_for('success',request = "operator_report"))
+         
+
+      #Matched Reports
+      matched_report = db_select_where("*","AllRecords", "LicencePlate", plateNumber) 
+      if matched_report:
+         matched_report_cols = len(matched_report[0])
+         num_matched_report = len(matched_report)
+      else:
+         matched_report_cols = 0
+         num_matched_report = 0
+         flash('No result') 
+      
+
+      matched_report_temp = []
+      for i in range(len(matched_report)):
+         list = []
+         for j in range(matched_report_cols):
+            list.append(matched_report[i][j])
+            
+         matched_report_temp.append(list)
+   
+      return render_template("traffic_report.html", 
+                           traffic_report = traffic_report_temp,
+                           matched_report = matched_report_temp,
+                           num_traffic_report = num_traffic_report,
+                           num_matched_report = num_matched_report,
+                           reported_image_name = reported_image_name,
+                           reported_video_name = reported_video_name,
+                           matched_image_name = matched_image_name,
+                           matched_video_name = matched_video_name,
+                           current_user_id = current_user_id
+                           )
       
    
-   # #Matched Reports
-   # matched_report = db_select("*","UserReports")  
-   # matched_report_cols = len(matched_report[0])
-   
-   # matched_report_temp = []
-   # for i in range(len(matched_report)):
-   #    list = []
-   #    for j in range(matched_report_cols):
-   #       list.append(matched_report[i][j])
-         
-   #    matched_report_temp.append(list)
-   
-   
-   
-   #Matched Reports
-   matched_report = db_select_where("*","AllRecords", "LicencePlate", "AAA002")  
-   matched_report_cols = len(matched_report[0])
-   num_matched_report = len(matched_report)
-
-   matched_report_temp = []
-   for i in range(len(matched_report)):
-      list = []
-      for j in range(matched_report_cols):
-         list.append(matched_report[i][j])
-         
-      matched_report_temp.append(list)
-   
-   print(f"matched_report_temp:::::::::{matched_report_temp}")
-   
-   return render_template("traffic_report.html", 
+   return render_template("traffic_report.html",
                           traffic_report = traffic_report_temp,
-                          matched_report = matched_report_temp,
                           num_traffic_report = num_traffic_report,
-                          num_matched_report = num_matched_report
-                          )
+                          reported_image_name = reported_image_name,
+                          reported_video_name = reported_video_name,
+                          matched_image_name = matched_image_name,
+                          matched_video_name = matched_video_name,
+                          current_user_id = current_user_id
+                           )
 
 
 ################################################################################################
@@ -496,6 +647,8 @@ def trafficreport():
 ################################################################################################
 @app.route("/users")
 def users():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    #Users
    user_records = db_select("*","Users")  
@@ -511,7 +664,8 @@ def users():
 
    
    return render_template("users.html", 
-                          user_records = user_records_temp
+                          user_records = user_records_temp,
+                          current_user_id = current_user_id
                           )
 
 ################################################################################################
@@ -519,6 +673,8 @@ def users():
 ################################################################################################
 @app.route("/cameras")
 def cameras():
+   # 0. Current user
+   current_user_id = str(current_user.get_id())
    
    #Cameras
    camera_records = db_select("*","Cameras")  
@@ -534,7 +690,8 @@ def cameras():
    
    
    return render_template("cameras.html",
-                          camera_records = camera_records_temp 
+                          camera_records = camera_records_temp,
+                          current_user_id = current_user_id
                           )
 
 
@@ -544,123 +701,96 @@ def cameras():
 ################################################################################################
 # User Form
 ################################################################################################
-@app.route('/user_form', methods=['GET', 'POST'])
-def user_form():
-   if request.method == 'POST':
-      # Get form data
-      first_name = request.form['firstName']
-      last_name = request.form['lastName']
-      email = request.form['email']
-      phone = request.form['phone']
-      location = request.form['location']
-      detail = request.form['detail']
-      # Process file uploads
-      file = request.files['file']
-      if file:
-         file.save('uploads/' + file.filename)
-      # Optionally process video uploads
-      video = request.files['video']
-      if video:
-         video.save('uploads/' + video.filename)
-         
-      flash('Your report has been submitted successfully')    
-         
-   #   return 'Form submitted successfully!'
-   
-   return render_template('user_form.html')
-
-
-
-@app.route("/user_form2")
-def user_form2():
-    form = UserReportForm()
-    
-    if request.method == 'POST': 
-        if form.validate() == False: 
-            flash('All fields are required.') 
-            return render_template('register.html', form = form) 
-        else: 
-            return render_template('index.html') 
-    
-    if request.method == 'GET': 
-        return render_template('register.html', form = form) 
-
-
-
-@app.route('/add_account', methods=['POST'])
-def add_account(): 
-   form = UserRegistrationForm()
-   
-   if form.validate_on_submit(): 
-      
-      # Check existing email
-      entered_email = form.email.data
-      try:
-         existing_email = db_select_where("Email", "Users", "Email", entered_email)
-         if entered_email in existing_email[0]:
-            flash("Your email is already in use. Please sign in instead")
-            return render_template('signup.html', form = form)
-         
-      except:
-         db_insert_users(form)
-         new_user = db_select_where("*", "users", "Email", form.email.data)
-         new_user = load_user(new_user[0][0])
-         login_user(new_user)
-
-         return redirect(url_for('success',request = "add_account"))
-         # return render_template('index.html')
-   else:
-      return render_template('signup.html', form = form) 
-   
-
-
-@app.route('/signin_account', methods=['POST'])
-def signin_account():
-   if request.method == 'POST':   
-      entered_email = request.form['email']
-      entered_password = request.form['password']
-
-      try:
-         registered_user = db_select_where("*","Users", "Email", entered_email)
-         registered_password = registered_user[0][5]
-         
-         
-      except:
-         registered_user = "None"
-         
-      if registered_user != "None":
-         if check_password(registered_password,entered_password):
-            registered_user = load_user(registered_user[0][0])
-            login_user(registered_user)
-            
-            # return redirect(url_for('success', request="signin"))
-            # 0. Current user
-            current_user_id = str(current_user.get_id())
-            user_info = db_select_where("*","Users", "UserID", current_user_id) 
-            return render_template('index.html', 
-                                   user_info = user_info)
-         
-         else:
-            flash('Your password is wrong')
-            return redirect(url_for('login')) 
-      else:
-         flash('Your email is not registered')
-         return redirect(url_for('login')) 
-      
-      
-      
-
-@app.route('/submit_user_report', methods=['POST'])
-def submit_user_report(): 
+@app.route("/user_report", methods=['GET', 'POST'])
+def user_report():
    form = UserReportForm()
+   
+   if request.method == 'POST': 
+      if form.validate_on_submit(): 
+         image = form.image.data
+         if(image == None):
+            image_name = "-"
+         else:
+            image_name = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_name))
+            
 
-   if form.validate_on_submit(): 
-      db_insert_user_report(form)
+         video = form.video.data
+         if(video == None):
+            video_name = "-"
+         else:
+            video_name = secure_filename(video.filename)
+            video.save(os.path.join(app.config['UPLOAD_FOLDER'], video_name))
+            
+         
+         
+         # Check plate number
+         plate_number = form.plate_number.data
+         location = form.location.data
+         car_type = form.car_type.data
+         
+         try:
+            risk_level = db_select_where("Risk", "Cars", "LicencePlate", plate_number)[0][0]
+            print(f"risk_level:::::::::::::::::::::::::{risk_level}")
+            
+            if "High" in risk_level or "Mid" in risk_level:
+               report_status = "Reported"
+               send_email2(risk_level, location, car_type, plate_number)
+            else:
+               risk_level = "Low"
+               report_status = "-"
+         except:
+            risk_level = "-"
+            report_status = "-"
+         
+         db_insert_user_report(form, image_name, video_name, risk_level, report_status)
 
-      # return redirect(url_for('dashboard'))
-      return render_template('register.html', form = form) 
+         return redirect(url_for('success',request = "user_report"))
+         
+   
+   
+   if request.method == 'GET': 
+      return render_template('user_report.html', form = form) 
 
-   return render_template('register.html', form = form) 
+
+
+# @app.route('/submit_user_report', methods=['POST'])
+# def submit_user_report(): 
+#    form = UserReportForm()
+
+#    if form.validate_on_submit(): 
+#       image = form.image.data
+#       image_name = secure_filename(image.filename)
+#       image.save(os.path.join(app.config['UPLOAD_FOLDER'], image_name))
+
+#       video = form.video.data
+#       video_name = secure_filename(video.filename)
+#       video.save(os.path.join(app.config['UPLOAD_FOLDER'], video_name))
+      
+#       # Check plate number
+#       plate_number = form.plate_number.data
+#       location = form.location.data
+#       car_type = form.car_type.data
+      
+#       try:
+#          risk_level = db_select_where("Risk", "Cars", "LicencePlate", plate_number)[0][0]
+         
+#          if "High" in risk_level or "Mid" in risk_level:
+#             report_status = "Reported"
+#             send_email2(risk_level, location, car_type, plate_number)
+#          else:
+#             risk_level = "Low"
+#             report_status = "-"
+#       except:
+#          risk_level = "-"
+#          report_status = "-"
+      
+#       db_insert_user_report(form, image_name, video_name, risk_level, report_status)
+
+#       return redirect(url_for('success',request = "user_report"))
+
+#    return render_template('user_report.html', form = form) 
+
 
 
 ################################################################################################
@@ -673,46 +803,44 @@ def account():
    user_info = db_select_where("*","Users", "UserID", current_user_id)  
    
    return render_template("account.html",
-                          user_info = user_info)
+                          user_info = user_info,
+                          current_user_id = current_user_id
+                          )
 
 
 
 ################################################################################################
 # Success
 ################################################################################################
-# @app.route("/success")
-# def success():
-   
-   
-#    title = "Ordered successfully"
-#    detail = "Thank you for placing your order!"
-         
-#    return render_template("success.html", 
-#                           title=title, 
-#                           detail=detail) 
-
-
-
 @app.route("/success/<string:request>")
 def success(request):
+   form = UserReportForm()
    
    # 0. User ID 
    current_user_id = str(current_user.get_id())
    
-   if request == "add_account":
+   if request == "signup":
       title = "Added your account successfully"
       detail = "Welcome to " + current_user.FirstName + " " + current_user.LastName
+   
+   elif request == "signin":
+      title = "Sign in successfully"
+      detail = "Welcome back " + current_user.FirstName + " " + current_user.LastName
       
-   
-   
-   # elif request == "search_fail":
-   #    title = "Item not found"
-   #    detail = "Try other search key words"
+   elif request == "user_report":
+      title = "Your report has been submitted successfully"
+      detail = "Thank you for your cooperation!"
+      return render_template("success_user_report.html", 
+                        title=title, 
+                        detail=detail) 
+      
+   elif request == "operator_report":
+      title = "Your report has been submitted successfully"
+      detail = "Thank you for your cooperation!"
       
    return render_template("success.html", 
                           title=title, 
                           detail=detail) 
-
 
 
 if __name__ == '__main__':

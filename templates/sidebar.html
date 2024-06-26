@@ -13,64 +13,68 @@
       <a class="nav-link " href="/dashboard">
         <!-- <i class="bi bi-grid"></i> -->
         <i class="fa-solid fa-house"></i>
-        <span>Dashboard</span>
+        <span class="nav-text">Dashboard</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/livevideo">
         <i class="fa-solid fa-video"></i>
-        <span>Live Video</span>
+        <span class="nav-text">Live Video</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/allrecords">
         <i class="fa-solid fa-file"></i>
-        <span>All Records</span>
+        <span class="nav-text">All Records</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/cars">
         <i class="fa-solid fa-car"></i>
-        <span>Cars</span>
+        <span class="nav-text">Cars</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/map">
         <i class="fa-solid fa-map"></i>
-        <span>Map</span>
+        <span class="nav-text">Map</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/analysis">
         <i class="fa-solid fa-magnifying-glass-chart"></i>
-        <span>Analysis</span>
+        <span class="nav-text">Analysis</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="/trafficreport">
         <i class="fa-solid fa-user-check"></i>
-        <span>Traffic Report</span>
+        <span class="nav-text">Traffic Report</span>
       </a>
     </li>
 
+    {% if (current_user_id == "30") %}
     <h6 class="mt-5">Admin Options</h6>
     <li class="nav-item">
       <a class="nav-link collapsed" href="/users">
         <i class="fa-solid fa-user"></i>
-        <span>Users</span>
+        <span class="nav-text">Users</span>
       </a>
     </li>
     <li class="nav-item">
       <a class="nav-link collapsed" href="/cameras">
         <i class="fa-solid fa-camera"></i>
-        <span>Cameras</span>
+        <span class="nav-text">Cameras</span>
       </a>
     </li>
+    {% endif %}
   </ul>
+
+
 </aside>

@@ -8,11 +8,22 @@
 
   <main id="main" class="main">
 
+    <!-- Alert -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %} 
+        {% for message in messages %} 
+            <div class="alert alert-danger" role="alert">
+              {{ message }}
+            </div> 
+        {% endfor %} 
+    {% endif %} 
+    {% endwith %}
+
     <div class="">
       <h1>Traffic Report</h1>
       <nav>
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.html">Home</a> / </li>
+          <li class="breadcrumb-item"><a href="dashboard">Home</a> / </li>
           <li class="breadcrumb-itemf active">Traffic Report</li>
         </ol>
       </nav>
@@ -22,8 +33,29 @@
       <div class="col">
         <div class="row">
           <h3>User Report</h3>
+
+
+          <div class="mx-3 ">
+            <ul class="nav nav-tabs justify-content-end" id="myTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Image</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Video</button>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <iframe id="user-report-image" class="embed-responsive-item fixed-iframe" src="{{ url_for('static',filename='files/{}'.format(reported_image_name) ) }}"></iframe>
+              </div>
+              <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                <iframe id="user-report-video" class="embed-responsive-item fixed-iframe" src="{{ url_for('static',filename='files/{}'.format(reported_video_name) ) }}"></iframe>
+              </div>
+            </div>
+          </div>
+
           <div class="embed-responsive embed-responsive-16by9">
-            <iframe class="embed-responsive-item user_report" src="../static/img/traffic1.mp4" allowfullscreen></iframe>
+            <!-- <iframe id="dynamicLink-1" class="embed-responsive-item fixed-iframe" src="{{ url_for('static',filename='files/{}'.format(img_name) ) }}"></iframe> -->
           </div>
           <h1 class="card-title">User Reports <span>| {{num_traffic_report}} results</span></h1>
           <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -32,46 +64,110 @@
             google.charts.setOnLoadCallback(drawTableUserReports);
 
             function drawTableUserReports() {
-                var data = new google.visualization.DataTable();
-                data.addColumn('number', 'id');
-                data.addColumn('string', 'Date');
-                data.addColumn('string', 'Location');
-                data.addColumn('string', 'Licence Plate');
-                data.addColumn('string', 'Brand');
-                data.addColumn('string', 'Car Type');
-                data.addColumn('string', 'Color');
-                data.addColumn('string', 'Risk');
-                data.addColumn('string', 'Report');
-                data.addColumn('string', 'User');
-                data.addColumn('string', 'Phone');
-                data.addColumn('string', 'Email');
-                data.addColumn('string', 'Detail');
-                
-                data.addRows({{ traffic_report | safe }});
+              var data = new google.visualization.DataTable();
+              data.addColumn('number', 'ReportID');
+              data.addColumn('string', 'Date');
+              data.addColumn('string', 'Location');
+              data.addColumn('string', 'Licence Plate');
+              data.addColumn('string', 'Brand');
+              data.addColumn('string', 'Car Type');
+              data.addColumn('string', 'Color');
+              data.addColumn('string', 'Risk');
+              data.addColumn('string', 'Report');
+              data.addColumn('string', 'User');
+              data.addColumn('string', 'Phone');
+              data.addColumn('string', 'Email');
+              data.addColumn('string', 'Detail');
+              data.addColumn('string', 'Image');
+              data.addColumn('string', 'Video');
+              
+              data.addRows({{ traffic_report | safe }});
 
-                var table = new google.visualization.Table(document.getElementById('table_user_reports'));
-    
-                var options = {
-                    showRowNumber: true, // Shows row numbers
-                    width: '35vw',
-                    height: '35vh'
-                };
-    
-                table.draw(data, options);
+              var table = new google.visualization.Table(document.getElementById('table_user_reports'));
+  
+              var options = {
+                  showRowNumber: false,
+                  width: '38vw',
+                  height: '30vh'
+              };
+
+              var selectedItem = table.getSelection()[0];
+              var currentItem = selectedItem
+
+
+              function selectHandler() {
+                var selectedItem = table.getSelection()[0];
+
+                if (selectedItem) {
+                  var imageName = data.getValue(selectedItem.row, 13);
+                  var videoName = data.getValue(selectedItem.row, 14);
+
+                  document.getElementById('user-report-image').src = "../static/files/" + imageName
+                  document.getElementById('user-report-video').src = "../static/files/" + videoName
+                  document.getElementById('reportedImageName').value = imageName
+                  document.getElementById('reportedVideoName').value = videoName
+
+                  var plateNumber = data.getValue(selectedItem.row, 3);
+                  document.getElementById('plateNumber').value = plateNumber
+
+                  <!-- alert('The user selected ' + plateNumber); -->
+                }
+              }
+              google.visualization.events.addListener(table, 'select', selectHandler);    
+              table.draw(data, options);
             }
           </script>
           <div id="table_user_reports"></div>
         </div>
-        <div class="text-right p-3">
+
+        <form method="POST" enctype="multipart/form-data" action="/trafficreport">
+          <div class="row mt-3">
+            <div class="col-md-3">
+              <input type="hidden" id="plateNumber" name="plateNumber" value="AAA001">
+              <input type="hidden" id="reportedImageName" name="reportedImageName" value="searched_result.png">
+              <input type="hidden" id="reportedVideoName" name="reportedVideoName" value="searched_result.png">
+            </div>
+          </div>
+          <div class="text-right p-3">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </div>
+        </form>
+
+
+        <!-- <div class="text-right p-3">
           <button type="button" class="btn btn-primary">Search</button>
-        </div>
+        </div> -->
       </div>
+
+
+
+
+
       <div class="col">
         <div class="row">
           <h3>Matched Result</h3>
-          <div class="embed-responsive embed-responsive-16by9">
-            <iframe class="embed-responsive-item user_report" src="../static/img/traffic1.mp4" allowfullscreen></iframe>
+
+          <div class="mx-3">
+            <ul class="nav nav-tabs justify-content-end" id="myTab2" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab2" data-bs-toggle="tab" data-bs-target="#home2" type="button" role="tab" aria-controls="home" aria-selected="true">Image</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab2" data-bs-toggle="tab" data-bs-target="#profile2" type="button" role="tab" aria-controls="profile" aria-selected="false">Video</button>
+              </li>
+            </ul>
+            <div class="tab-content" id="myTabContent2">
+              <div class="tab-pane fade show active" id="home2" role="tabpanel" aria-labelledby="home-tab">
+                <iframe id="matched-report-image" class="embed-responsive-item fixed-iframe" src="{{ url_for('static',filename='files/{}'.format(matched_image_name) ) }}"></iframe>
+              </div>
+              <div class="tab-pane fade" id="profile2" role="tabpanel" aria-labelledby="profile-tab">
+                <iframe id="matched-report-video" class="embed-responsive-item fixed-iframe" src="{{ url_for('static',filename='files/{}'.format(matched_video_name) ) }}"></iframe>
+              </div>
+            </div>
           </div>
+          <!-- <div class="embed-responsive embed-responsive-16by9">
+            <iframe id="dynamicLink-2" class="embed-responsive-item fixed-iframe" src="static/files/searched_result.png" allowfullscreen></iframe>
+          </div> -->
           <h1 class="card-title">Matched Records <span>| {{num_matched_report}} results</span></h1>
           <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
           <script type="text/javascript">
@@ -80,7 +176,7 @@
 
             function drawTableMatchedReports() {
                 var data = new google.visualization.DataTable();
-                data.addColumn('number', 'CarID');
+                data.addColumn('number', 'RecordID');
                 data.addColumn('string', 'Date');
                 data.addColumn('number', 'Year');
                 data.addColumn('number', 'Month');
@@ -88,6 +184,7 @@
                 data.addColumn('string', 'Time');
                 data.addColumn('string', 'Data Sorce');
                 data.addColumn('string', 'Location');
+                data.addColumn('number', 'CarID');
                 data.addColumn('string', 'Licence Plate');
                 data.addColumn('string', 'Brand');
                 data.addColumn('string', 'Car Type');
@@ -96,8 +193,8 @@
                 data.addColumn('number', 'Speed');
                 data.addColumn('number', 'Exceeding Rate');
                 data.addColumn('string', 'Direction');
-                data.addColumn('string', 'Video');
                 data.addColumn('string', 'Image');
+                data.addColumn('string', 'Video');
                 data.addColumn('string', 'Status');
                 data.addColumn('string', 'Detail');
                 
@@ -106,19 +203,43 @@
                 var table = new google.visualization.Table(document.getElementById('table_matched_reports'));
     
                 var options = {
-                    showRowNumber: true, // Shows row numbers
-                    width: '35vw',
-                    height: '35vh'
+                    showRowNumber: false,
+                    width: '38vw',
+                    height: '30vh'
                 };
     
+                function selectHandler2() {
+                  var selectedItem = table.getSelection()[0];
+                  if (selectedItem) {
+                    var imageName = data.getValue(selectedItem.row, 17);
+                    var videoName = data.getValue(selectedItem.row, 18);
+                    document.getElementById('matched-report-image').src = "../static/files/" + imageName
+                    document.getElementById('matched-report-video').src = "../static/files/" + videoName
+  
+                    var plateNumber2 = data.getValue(selectedItem.row, 9);
+                    document.getElementById('plateNumber2').value = plateNumber2
+                    <!-- alert('The user selected ' + topping); -->
+                  }
+                }
+        
+                google.visualization.events.addListener(table, 'select', selectHandler2);    
                 table.draw(data, options);
             }
           </script>
           <div id="table_matched_reports"></div>
         </div>
-        <div class="text-right p-3">
-          <button type="button" class="btn btn-primary float-right">Report This Car</button>
-        </div>
+
+        <form method="POST" enctype="multipart/form-data" action="/trafficreport">
+          <div class="row mt-3">
+            <div class="col-md-3">
+              <input type="hidden" id="plateNumber2" name="plateNumber2" value="AAA001">
+            </div>
+          </div>
+          <div class="text-right p-3">
+            <button type="submit" class="btn btn-primary">Report</button>
+          </div>
+        </form>
+        
       </div>
     </div>
 

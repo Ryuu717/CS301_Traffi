@@ -2,8 +2,12 @@ import sqlite3 as sql
 # from datetime import date, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
+import string
 import pandas as pd
 import datetime
+from flask import request
+
+import re
 
 ################################################################################################
 # DB Path
@@ -19,7 +23,14 @@ def db_select(col, table):
         cur.execute(f"SELECT {col} FROM {table}") 
         list= cur.fetchall(); 
         return list
-    
+
+def db_select_order(col, table, order_col, order):
+    with sql.connect(DB_path) as con:
+        cur = con.cursor()
+        cur.execute(f"SELECT {col} FROM {table} ORDER BY {order_col} {order}") 
+        list= cur.fetchall(); 
+        return list
+ 
 def db_select_where(col, table, col_target, col_value):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
@@ -30,7 +41,6 @@ def db_select_where(col, table, col_target, col_value):
 def db_select_where_above(col, table, col_target, col_value):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
-        # cur.execute(f"SELECT {col} FROM {table} WHERE {col_target} > '{col_value}'")
         cur.execute(f"SELECT {col} FROM {table} WHERE {col_target} > '{col_value}' AND {col_target} != ''")
         list= cur.fetchall(); 
         return list
@@ -38,7 +48,6 @@ def db_select_where_above(col, table, col_target, col_value):
 def db_select_where_above_by_month(col, table, col_target, col_value, month):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
-        # cur.execute(f"SELECT {col} FROM {table} WHERE {col_target} > '{col_value}'")
         cur.execute(f"SELECT {col} FROM {table} WHERE {col_target} > '{col_value}' AND Month = {month} ")
         list= cur.fetchall(); 
         return list
@@ -71,29 +80,12 @@ def db_select_count_report_by_car(col, table, licence_plate):
         list= cur.fetchall(); 
         return list
 
-
 def db_select_count_camera_by_status(col, table, status):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
-        cur.execute(f"SELECT {col}, COUNT(id) FROM {table} WHERE status = 'Online' OR status='Offline' GROUP BY {status} ORDER BY 'status' DESC")
+        cur.execute(f"SELECT {col}, COUNT(CameraID) FROM {table} WHERE Status = 'Online' OR Status='Offline' GROUP BY {status} ORDER BY 'Status' DESC")
         list= cur.fetchall(); 
         return list
-    
-    
-    
-    
-############################################################
-# Insert
-############################################################
-def db_insert_user_report(form):
-    with sql.connect(DB_path) as con:
-        cur = con.cursor()
-        
-        date = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-        name = form.first_name.data + form.last_name.data
-        
-        cur.execute("INSERT INTO UserReports (date, location, licencePlate, brand, carType, color, risk, report, user, phone, email, detail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (date, form.location.data,"LicencePlate","brand","carType","color","risk","report", name,form.phone.data,form.email.data, form.detail.data))
-        con.commit()
 
 def db_insert_users(form):
     with sql.connect(DB_path) as con:
@@ -106,34 +98,93 @@ def db_insert_users(form):
             salt_length=8
         )
         
-        cur.execute("INSERT INTO Users (FirstName, LastName, Phone, Email, Password, Role, Authorized, Status, UserType) VALUES (?,?,?,?,?,?,?,?,?)",(form.first_name.data, form.last_name.data, "", form.email.data, hashed_salted_password, form.first_name.data, form.first_name.data, form.first_name.data, form.first_name.data))
+        cur.execute("INSERT INTO Users (FirstName, LastName, Phone, Email, Password, Role, Authorized, Status, UserType) VALUES (?,?,?,?,?,?,?,?,?)",(form.first_name.data, form.last_name.data, "000-000-0000", form.email.data, hashed_salted_password, "Operator", "Yes", "Online", "-"))
         con.commit()
         
 def db_insert_cars_count(form):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
-        
-        # cur.execute("INSERT INTO UserReports (FirstName, LastName, Address, Phone, Email, CardNumber, UserType, Password) VALUES (?,?,?,?,?,?,?,?)",(form.first_name.data, form.last_name.data, form.address.data, form.phone.data, form.email.data, form.card_number.data, user_type, hashed_salted_password))
         cur.execute("INSERT INTO CarDirection (Area, In, Out, Volume) VALUES (?,?,?,?)",(form.first_name.data, form.first_name.data, form.first_name.data,form.first_name.data))
         con.commit()
-
 
 def db_insert_cars_detected(object, i):
     with sql.connect(DB_path) as con:
         cur = con.cursor()
         
-        # Data list
-        # year = object.detected_date[i]
         speed_limit = 100
         detected_speed = object.dist_data[i]
         exceeding_speed_rate = (detected_speed- speed_limit) / speed_limit * 100
-        detected_class = object.detected_cars[i]
         detected_direction = object.detected_directions[i]
+        data_source = "camera"
         
-        cur.execute("INSERT INTO AllRecords (Date,Year,Month,Day,Time,DataSource,Location,LicencePlate,Brand,CarType,Color,SpeedLimit,Speed,ExceedingRate,Direction,Video,Image,Status,Detail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(object.detected_date[i],object.detected_year[i],object.detected_month[i],object.detected_day[i],object.detected_time[i],"Camera","Highway-1","","",detected_class,"",speed_limit, detected_speed,exceeding_speed_rate, detected_direction,"","","",""))
+        # location
+        location_list = ["Highway-1", "Highway-2", "Highway-3", "Highway-4", "Highway-5", "Highway-6", "Highway-7"]
+        location = random.choice(location_list)
+        
+        car_id = len(db_select("RecordID", "allRecords"))+1
+        
+        # licence plate
+        letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+        digits = ''.join(random.choices(string.digits, k=3))
+        licence_plate = letters + "-" + digits
+        
+        # brand list
+        brand_list = ["Toyota", "Honda", "Nissan", "BMW", "Audi", "Tesla", "BYD"]
+        brand = random.choice(brand_list)
+        
+        # car type
+        car_type_list = ["Sedan", "SUV", "Sport", "Compact", "Coupe"]
+        car_type = random.choice(car_type_list)
+        
+        # color
+        car_color_list = ["Black", "White", "Red", "Blue", "Yellow", "Green", "Grey"]
+        car_color = random.choice(car_color_list)
+        
+        cur.execute("INSERT INTO AllRecords (CarId, Date,Year,Month,Day,Time,DataSource,Location,LicencePlate,Brand,CarType,Color,SpeedLimit,Speed,ExceedingRate,Direction,Video,Image,Status,Detail) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(car_id, object.detected_date[i],object.detected_year[i],object.detected_month[i],object.detected_day[i],object.detected_time[i],data_source,location,licence_plate, brand, car_type, car_color, speed_limit, detected_speed,exceeding_speed_rate, detected_direction,"","","",""))
         con.commit()
 
-    
+def db_insert_user_report(form, image_name, video_name, risk_level, report_status):
+    with sql.connect(DB_path) as con:
+        cur = con.cursor()
+        date = datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        
+        # location
+        location_list = ["Highway-1", "Highway-2", "Highway-3", "Highway-4", "Highway-5", "Highway-6", "Highway-7"]
+        location = random.choice(location_list)
+        
+        # plate number
+        plate_number = form.plate_number.data
+        
+        # brand list
+        brand_list = ["Toyota", "Honda", "Nissan", "BMW", "Audi", "Tesla", "BYD"]
+        brand = random.choice(brand_list)
+        
+        # car type
+        car_type = form.car_type.data
+        
+        # color
+        car_color_list = ["Black", "White", "Red", "Blue", "Yellow", "Green", "Grey"]
+        car_color = random.choice(car_color_list)
+        
+        # risk
+        risk = risk_level
+        
+        # report status
+        report = report_status
+        
+        # user info
+        user = form.first_name.data + " " + form.last_name.data
+        phone = form.phone.data
+        email = form.email.data
+        detail = form.detail.data
+        
+        # image & video
+        image = image_name
+        video = video_name
+
+        cur.execute("INSERT INTO UserReports (Date, Location, LicencePlate, Brand, CarType, Color, Risk, Report, User, Phone, Email, Detail, Image, Video) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",(date, location, plate_number, brand, car_type, car_color, risk, report, user, phone, email, detail, image, video))
+        con.commit()
+
 def db_update_cars():
     with sql.connect(DB_path) as con:
         cur = con.cursor()
@@ -145,7 +196,6 @@ def db_update_cars():
         #LicencePlate Records
         LicencePlate_list = db_select("LicencePlate", "AllRecords")
         LicencePlate_list = list(set(LicencePlate_list))
-        # print(LicencePlate_list)
 
         #Cars
         Cars_list = db_select("LicencePlate", "Cars")
@@ -159,7 +209,6 @@ def db_update_cars():
                 pass
             else:
                 LicencePlate = db_select_where("LicencePlate", "AllRecords", "LicencePlate", LicencePlate_list[i][0])
-                
                 Brand = db_select_where("Brand", "AllRecords", "LicencePlate", LicencePlate_list[i][0])
                 CarType = db_select_where("CarType", "AllRecords", "LicencePlate", LicencePlate_list[i][0])
                 Color = db_select_where("Color", "AllRecords", "LicencePlate", LicencePlate_list[i][0])
@@ -176,16 +225,23 @@ def db_update_cars():
                     Risk = "Low"
             
                 cur.execute("INSERT INTO Cars (LicencePlate, Brand, CarType, Color, Speedings, CarViolation, TrafficReport, Reported, MostUseRoad, Risk) VALUES (?,?,?,?,?,?,?,?,?,?)",(LicencePlate[0][0],Brand[0][0],CarType[0][0],Color[0][0],Speedings[0][1],Violation ,TrafficReport[0][1],1, MostUseRoad,Risk))
+                con.commit()
 
-        
-        # return new_list
-
-        # cur.execute("INSERT INTO Cars (CarID, LicencePlate, Brand, CarType, Color, Speedings, CarViolation, TrafficReport, Reported, MostUseRoad, Risk) VALUES (?,?,?,?,?,?,?,?,?,?,?)",(form.first_name.data, form.last_name.data, "", form.email.data, hashed_salted_password, form.first_name.data, form.first_name.data, form.first_name.data, form.first_name.data))
-        # con.commit()
-
-
-    
-# SELECT LicencePlate, COUNT(LicencePlate) FROM AllRecords WHERE LicencePlate = 'AAA002' AND ExceedingRate >10
-        
+def db_update_user_info(form, user_id):
+   with sql.connect(DB_path) as con:
+      cur = con.cursor()
+      cur.execute("UPDATE Users SET FirstName=?, LastName=?, Address=?, Phone=?, Email=?, CardNumber=? WHERE UserID=?", (form.first_name.data, form.last_name.data, form.address.data, form.phone.data, form.email.data, form.card_number.data, user_id)) 
+      cur.execute("UPDATE Users SET FirstName=? WHERE UserID=?", (form.first_name.data, user_id)) 
+      con.commit()
+      
+def db_delete(table, col_target, col_value):
+   with sql.connect(DB_path) as con:
+      cur = con.cursor()
+      
+      cur.execute(f"DELETE FROM {table} WHERE {col_target} = '{col_value}'")
+      con.commit() 
+       
 def check_password(registered_password, entered_password):
     return check_password_hash(registered_password, entered_password)
+
+

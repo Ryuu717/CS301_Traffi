@@ -2,6 +2,17 @@
 {% include "header.html" %}
 
   <body id="landing">
+
+    <!-- Alert -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %} 
+        {% for message in messages %} 
+            <div class="alert alert-danger" role="alert">
+              {{ message }}
+            </div> 
+        {% endfor %} 
+    {% endif %} 
+    {% endwith %}
     <div class="m-5">
       <!-- Logo -->
       <div class="d-flex align-items-center justify-content-between mb-5">
@@ -12,7 +23,7 @@
       </div>
       <div class="d-flex justify-content-center pt-5 mt-5">
         <!-- <form class="card p-4 form" action="/dashboard", method="post"> -->
-        <form class="card p-4 form" method="POST" enctype="multipart/form-data" action="/add_account">
+        <form class="card p-4 form" method="POST" enctype="multipart/form-data" action="/signup">
           {{ form.hidden_tag() }} 
 
           <h2 class="fw-bold mb-5">Create account</h2>
@@ -21,7 +32,7 @@
             <div class="row">
               <div class="col">
                 {{ form.first_name.label(style='padding: 5px 0px;') }} <br> 
-                {{ form.first_name(style='width: 250px;') }} <br> 
+                {{ form.first_name(style='width: 285px;') }} <br> 
                 <!-- Error Message -->
                 {% for message in form.first_name.errors %} 
                   <div class="text-danger">{{message}}</div> 
@@ -29,7 +40,7 @@
               </div>
               <div class="col">
                 {{ form.last_name.label(style='padding: 5px 0px;') }} <br> 
-                {{ form.last_name(style='width: 250px;') }} <br> 
+                {{ form.last_name(style='width: 285px;') }} <br> 
                 <!-- Error Message -->
                 {% for message in form.last_name.errors %} 
                   <div class="text-danger">{{message}}</div> 
@@ -40,7 +51,7 @@
 
           <div class="form-group">
             {{ form.email.label(style='padding: 5px 0px;') }} <br> 
-            {{ form.email(style='width: 560px;') }} <br> 
+            {{ form.email(style='width: 600px;') }} <br> 
             <!-- Error Message -->
             {% for message in form.email.errors %} 
               <div class="text-danger">{{message}}</div> 
@@ -48,7 +59,7 @@
           </div>
           <div class="form-group">
             {{ form.password.label(style='padding: 5px 0px;') }} <br> 
-            {{ form.password(style='width: 560px;') }} <br> 
+            {{ form.password(style='width: 600px;') }} <br> 
             <!-- Error Message -->
             {% for message in form.password.errors %} 
               <div class="text-danger">{{message}}</div> 
@@ -56,7 +67,7 @@
           </div>        
           <div class="form-group">
             {{ form.re_enter_password.label(style='padding: 5px 0px;') }} <br> 
-            {{ form.re_enter_password(style='width: 560px;') }} <br> 
+            {{ form.re_enter_password(style='width: 600px;') }} <br> 
             <!-- Error Message -->
             {% for message in form.re_enter_password.errors %} 
               <div class="text-danger">{{message}}</div> 
@@ -69,7 +80,7 @@
             <a href="/dashboard" class="btn btn-primary my-3 width-max" role="button">Continue</a>
           </div> -->
 
-          <h6>Already have an account?<span class="px-2"><a href="/login">Login</a></span></h6>
+          <h6>Already have an account?<span class="px-2"><a href="/signin">Signin</a></span></h6>
 
         </form>
       </div>

@@ -509,6 +509,7 @@ google.charts.load('current', {'packages':['table']});
 
 // function drawTable2() {
 //   var data = new google.visualization.DataTable();
+//   data.addColumn('number', 'RecordID');
 //   data.addColumn('number', 'id');
 //   data.addColumn('string', 'Date');
 //   data.addColumn('string', 'Data Sorce');
@@ -681,5 +682,3 @@ function uploadFile(file) {
 // }
 
 // window.initMap = initMap;
-
-
