@@ -4,10 +4,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import datetime
 
-
+# Set email address and password
+# https://docs.ultralytics.com/guides/security-alarm-system/
 password = "ewsl jvzo awpa qjyj"
-from_email = "ishiryuuu17@gmail.com"  # must match the email used to generate the password
-to_email = "ishiryuuu17@gmail.com"  # receiver email
+from_email = "-"  # must match the email used to generate the password
+to_email = "-"  # receiver email
 
 server = smtplib.SMTP('smtp.gmail.com: 587')
 server.starttls()
@@ -17,7 +18,7 @@ current_time = datetime.datetime.now()
 date = current_time.strftime("%m/%d/%Y %H:%M:%S")
 
 
-
+# Speeding Report
 def send_email(object_detected, speed):
     message = MIMEMultipart()
     message['From'] = from_email
@@ -33,28 +34,11 @@ def send_email(object_detected, speed):
                 \n Car speed: {speed} km'
                 
 
-    
-    # message_detail = ""
-    # for i in object.trk_idslist:
-    #     car_track_id = i
-    #     car_type = object.detected_cars[i]
-    #     car_speed = object.detected_cars[i]
-    #     car_exceeding_speed = object.detected_cars[i]
-    #     car_direction = object.detected_cars[i]
-        
-    #     message_detail + f"Date: {date} \n"
-    #     message_detail + f"Car Track ID: {car_track_id} \n"
-        
-    
-    # message_body = f'ALERT - Speeding has been detected!! \ 
-    #                 \n{message_detail}'
-            
-
     message.attach(MIMEText(message_body, 'plain'))
     server.sendmail(from_email, to_email, message.as_string())
     
     
-    
+# End User Report
 def send_email2(risk_level, location, car_type, plate_number ):
     message = MIMEMultipart()
     message['From'] = from_email

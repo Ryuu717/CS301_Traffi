@@ -9,7 +9,6 @@ import numpy as np
 
 from ultralytics.utils.checks import check_imshow
 from ultralytics.utils.plotting import Annotator, colors
-# from auto_report import send_email
 from ocr_reader import ocr_image
 
 import easyocr
@@ -131,7 +130,6 @@ class SpeedEstimator:
             cls (str): object class name
             track (list): tracking history for tracks path drawing
         """
-        # speed_label = f"{int(self.dist_data[track_id])}km/ph" if track_id in self.dist_data else self.names[int(cls)]
         speed_label = f"{int(self.dist_data[track_id])}km/h {self.detected_number[track_id]}" if track_id in self.dist_data else self.names[int(cls)]
         bbox_color = colors(int(track_id)) if track_id in self.dist_data else (255, 0, 255)
         
@@ -243,43 +241,6 @@ class SpeedEstimator:
         cv2.imshow("Ultralytics Speed Estimation", self.im0)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             return
-    
-    # def report_cars(self):
-    #     # num_detected_cars = len(self.trk_idslist)
-    #     for i in self.trk_idslist:
-            
-    #         speed_limit = self.speed_limit
-    #         detected_speed = self.dist_data[i]
-            
-    #         if detected_speed > speed_limit:
-    #             send_email(self.detected_cars[i], self.dist_data[i])
-        
-    def output(self):
-        print(f"self.dist_data:::::{self.dist_data}")
-        # print(f"self.clss:::::{self.clss}")
-        print(f"self.detected_cars:::::{self.detected_cars}")
-        print(f"self.detected_direction:::::{self.detected_directions}")
-        print(f"self.detected_plate_number:::::{self.detected_number}")
-        
-    
-    # reader = easyocr.Reader(['en'], gpu=True)
-    # def ocr_image(img,coordinates):
-    #     x,y,w, h = int(coordinates[0]), int(coordinates[1]), int(coordinates[2]),int(coordinates[3])
-    #     img = img[y:h,x:w]
-
-    #     gray = cv2.cvtColor(img , cv2.COLOR_RGB2GRAY)
-    #     #gray = cv2.resize(gray, None, fx = 3, fy = 3, interpolation = cv2.INTER_CUBIC)
-    #     result = reader.readtext(gray)
-    #     text = ""
-
-    #     for res in result:
-    #         if len(result) == 1:
-    #             text = res[1]
-    #         if len(result) >1 and len(res[1])>6 and res[2]> 0.2:
-    #             text = res[1]
-    #     #     text += res[1] + " "
-        
-    #     return str(text)
     
 
 

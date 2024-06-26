@@ -8,7 +8,6 @@ def video_detection(path_x):
     cap=cv2.VideoCapture(video_capture)
     frame_width=int(cap.get(3))
     frame_height=int(cap.get(4))
-    #out=cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P','G'), 10, (frame_width, frame_height))
 
     model=YOLO("../YOLO-Weights/yolov8n.pt")
     classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
@@ -36,11 +35,7 @@ def video_detection(path_x):
                 cls=int(box.cls[0])
                 class_name=classNames[cls]
                 label=f'{class_name}{conf}'
-                
-                # print(f'{class_name}{conf}')
-                
                 t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
-                # print(t_size)
                 c2 = x1 + t_size[0], y1 - t_size[1] - 3
                 cv2.rectangle(img, (x1,y1), c2, [255,0,255], -1, cv2.LINE_AA)  # filled
                 cv2.putText(img, label, (x1,y1-2),0, 1,[255,255,255], thickness=1,lineType=cv2.LINE_AA)
@@ -48,9 +43,4 @@ def video_detection(path_x):
         
         yield img
         
-        #out.write(img)
-        #cv2.imshow("image", img)
-        #if cv2.waitKey(1) & 0xFF==ord('1'):
-            #break
-    #out.release()
 cv2.destroyAllWindows()

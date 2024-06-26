@@ -4,8 +4,7 @@ from ultralytics.solutions import object_counter
 import cv2
 
 from db_handler import db_insert_cars_detected
-from auto_report import send_email
-# from ocr_reader import ocr_image
+# from auto_report import send_email
 
 
 def predict(video_path):
@@ -13,7 +12,6 @@ def predict(video_path):
     names = model.model.names
 
     cap = cv2.VideoCapture(video_path)
-    # cap = cv2.VideoCapture("/Users/Ryuuu/Desktop/240226_CS301/05_Code/02_Traffic Surveillance System/01_Cloud Platform/static/files/test3.mp4")
     assert cap.isOpened(), "Error reading video file"
     w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
@@ -36,9 +34,6 @@ def predict(video_path):
                     line_thickness=2,
                     region_thickness=1,
                     spdl_dist_thresh = 10)
-
-
-
 
     ##########################################
     # Counter
@@ -73,57 +68,18 @@ def predict(video_path):
         im0 = speed_obj.estimate_speed(im0, tracks)
         im0 = counter.start_counting(im0, tracks)
         # im0 = speed_obj.ocr_image(im0, tracks)
-        
-        # video_writer.write(im0)
     
         yield im0
         
-    
-    # num_detected_objects = len(speed_obj.trk_idslist)
+    # Record cars
     for i in speed_obj.trk_idslist:
         db_insert_cars_detected(speed_obj, i)
-        
-        
+            
         # # Auto_Report
         # detected_speed = speed_obj.dist_data[i]
-        # if detected_speed > 120:
+        # speed_limit = 120
+        # if detected_speed > speed_limit:
         #     send_email(speed_obj.detected_cars[i], speed_obj.dist_data[i])
-            
-    
-    # show In Count
-    # speed_obj.output()
-    
-    # speed_obj.report_cars()
-    
 
-# cap.release()
-# video_writer.release()
+
 cv2.destroyAllWindows()
-
-
-
-
-
-
-
-
-# def predict(video_path):
-#     model = YOLO("yolov8n.pt")
-#     speed_obj = speed_estimation.SpeedEstimator()
-#     cap = cv2.VideoCapture(video_path)
-    
-#     while cap.isOpened():
-#         success, im0 = cap.read()
-#         tracks = model.track(im0, 
-#                         tracker= "botsort.yaml",
-#                         conf=0.2,
-#                         iou=0.5,
-#                         persist=True, 
-#                         show=False, 
-#                         verbose=True)
-        
-#         im0 = speed_obj.estimate_speed(im0, tracks)
-    
-#         yield im0
-        
-        

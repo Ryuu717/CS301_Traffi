@@ -1,13 +1,9 @@
 import sqlite3 as sql
-# from datetime import date, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
-import pandas as pd
 import datetime
 from flask import request
-
-import re
 
 ################################################################################################
 # DB Path
@@ -203,7 +199,7 @@ def db_update_cars():
         #All Records
         All_Record_list = db_select("*", "AllRecords")
         
-        #Compare
+        #Compare between cars in AllRecords and cars in Cars list
         for i in range(len(LicencePlate_list)):
             if LicencePlate_list[i] in Cars_list:
                 pass
